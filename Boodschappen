@@ -1,0 +1,94 @@
+# Stressvrije Boodschappenlijst - Basis Python Script
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Voorbeeld recepten database gebaseerd op een Nederlandse supermarkt
+recepten = {
+    "Spaghetti Bolognese": [
+        {"ingredient": "Spaghetti", "hoeveelheid": 200, "supermarkt": "AH"},
+        {"ingredient": "Gehakt", "hoeveelheid": 300, "supermarkt": "AH"},
+        {"ingredient": "Tomatensaus", "hoeveelheid": 1, "supermarkt": "AH"},
+        {"ingredient": "Ui", "hoeveelheid": 1, "supermarkt": "AH"},
+        {"ingredient": "Knoflook", "hoeveelheid": 2, "supermarkt": "AH"}
+    ],
+    "Caesar Salad": [
+        {"ingredient": "Kropsla", "hoeveelheid": 1, "supermarkt": "AH"},
+        {"ingredient": "Kipfilet", "hoeveelheid": 200, "supermarkt": "AH"},
+        {"ingredient": "Croutons", "hoeveelheid": 50, "supermarkt": "AH"},
+        {"ingredient": "Parmezaanse kaas", "hoeveelheid": 30, "supermarkt": "AH"},
+        {"ingredient": "Caesardressing", "hoeveelheid": 1, "supermarkt": "AH"}
+    ]
+}
+
+# Functie om boodschappenlijst te genereren
+def genereer_boodschappenlijst(geselecteerde_recepten, aantal_personen):
+    boodschappenlijst = {}
+    supermarkt_set = set()
+
+    for recept in geselecteerde_recepten:
+        if recept in recepten:
+            for item in recepten[recept]:
+                ingredient = item["ingredient"]
+                hoeveelheid = item["hoeveelheid"] * aantal_personen
+                supermarkt = item["supermarkt"]
+
+                supermarkt_set.add(supermarkt)
+
+                if ingredient in boodschappenlijst:
+                    boodschappenlijst[ingredient]["hoeveelheid"] += hoeveelheid
+                else:
+                    boodschappenlijst[ingredient] = {"hoeveelheid": hoeveelheid, "supermarkt": supermarkt}
+        else:
+            print(f"Recept '{recept}' niet gevonden in de database.")
+
+    # Controleer of alle ingrediënten uit dezelfde supermarkt komen
+    if len(supermarkt_set) > 1:
+        raise ValueError("Alle ingrediënten moeten uit dezelfde supermarkt komen. Controleer uw selectie.")
+
+    return boodschappenlijst, supermarkt_set
+
+# Functie om lijst overzichtelijk weer te geven
+def print_boodschappenlijst(boodschappenlijst, supermarkt_set):
+    supermarkt = supermarkt_set.pop() if len(supermarkt_set) == 1 else "Meerdere supermarkten"
+    print(f"\n--- Boodschappenlijst (Supermarkt: {supermarkt}) ---")
+    for ingredient, details in boodschappenlijst.items():
+        print(f"- {ingredient}: {details['hoeveelheid']}")
+
+# Functie om visuele weergave te tonen
+def toon_visuele_weergave(boodschappenlijst):
+    ingrediënten = list(boodschappenlijst.keys())
+    hoeveelheden = [details["hoeveelheid"] for details in boodschappenlijst.values()]
+
+    kleuren = plt.cm.viridis(np.linspace(0, 1, len(ingrediënten)))
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(ingrediënten, hoeveelheden, color=kleuren)
+    plt.xlabel('Ingrediënten')
+    plt.ylabel('Hoeveelheid')
+    plt.title('Ingrediënten en hoeveelheden voor je recept')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
+# Gebruiker invoer
+print("Beschikbare recepten:")
+for recept in recepten.keys():
+    print(f"- {recept}")
+
+keuze = input("\nVoer de namen van de gewenste recepten in, gescheiden door komma's: ")
+geselecteerde_recepten = [r.strip() for r in keuze.split(',')]
+
+aantal_personen = int(input("Voor hoeveel personen wilt u koken? "))
+
+try:
+    # Genereer boodschappenlijst
+    boodschappenlijst, supermarkt_set = genereer_boodschappenlijst(geselecteerde_recepten, aantal_personen)
+
+    # Toon boodschappenlijst
+    print_boodschappenlijst(boodschappenlijst, supermarkt_set)
+
+    # Toon visuele weergave
+    toon_visuele_weergave(boodschappenlijst)
+except ValueError as e:
+    print(f"Fout: {e}")
